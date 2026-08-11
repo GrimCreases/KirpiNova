@@ -1,3 +1,4 @@
+import { notifyDataChanged } from "@/lib/data-events";
 export type PersonGroup = "family" | "friends" | "professional" | "other";
 export type PersonRecord = {
   id: string;
@@ -31,5 +32,5 @@ function normalize(value: Partial<PersonRecord>): PersonRecord | null {
 }
 export const peopleRepository = {
   load(): PersonRecord[] { try { const raw = localStorage.getItem(STORAGE_KEY); if (!raw) return previewPeople; const value = JSON.parse(raw); return Array.isArray(value) ? value.map(normalize).filter((item): item is PersonRecord => item !== null) : previewPeople; } catch { return previewPeople; } },
-  save(items: PersonRecord[]) { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); },
+  save(items: PersonRecord[]) { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); notifyDataChanged(); },
 };

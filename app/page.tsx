@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { TaskWorkspace } from "@/components/task-workspace";
 import { CalendarWorkspace } from "@/components/calendar-workspace";
 import { FinanceWorkspace } from "@/components/finance-workspace";
@@ -10,6 +10,9 @@ import { PeopleWorkspace } from "@/components/people-workspace";
 import { SettingsWorkspace } from "@/components/secure-settings-workspace";
 import { DashboardWorkspace } from "@/components/dashboard-workspace";
 import { AuthScreen } from "@/components/auth-screen";
+import { VaultGate } from "@/components/vault-gate";
+import { VaultSync } from "@/components/vault-sync";
+import type { CloudVaultKey } from "@/lib/cloud-vault";
 
 type IconName =
   | "home" | "task" | "calendar" | "finance" | "document" | "journal"
@@ -73,6 +76,9 @@ function BrandMark() {
 export default function Home() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [signedIn, setSignedIn] = useState(false);
+  const [cloudSession, setCloudSession] = useState(false);
+  const [vaultSession, setVaultSession] = useState<{ key: CloudVaultKey; revision: number } | null>(null);
+  const [syncStatus, setSyncStatus] = useState<"synced" | "syncing" | "conflict" | "offline">("synced");
   const [showPassword, setShowPassword] = useState(false);
   const [active, setActive] = useState("Dashboard");
   const [tasks, setTasks] = useState(initialTasks);
@@ -89,8 +95,13 @@ export default function Home() {
   useEffect(() => {
     fetch("/api/auth/session", { cache: "no-store" })
       .then((response) => response.json())
-      .then((value) => { if (value.authenticated) setSignedIn(true); })
+      .then((value) => { if (value.authenticated) { setCloudSession(true); setSignedIn(true); } })
       .catch(() => undefined);
+  }, []);
+  useEffect(() => {
+    const receive = (event: Event) => setSyncStatus((event as CustomEvent).detail);
+    window.addEventListener("kirpinova:sync-status", receive);
+    return () => window.removeEventListener("kirpinova:sync-status", receive);
   }, []);
   function toggleTheme() {
     changeTheme(theme === "light" ? "dark" : "light");
@@ -100,15 +111,13 @@ export default function Home() {
     setTheme(next);
     document.documentElement.dataset.theme = next;
     window.localStorage.setItem("kirpinova-theme", next);
-  }
-
-  function signIn(event: FormEvent) {
-    event.preventDefault();
-    setSignedIn(true);
+    window.dispatchEvent(new Event("kirpinova:data-changed"));
   }
 
   async function signOut() {
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);
+    setVaultSession(null);
+    setCloudSession(false);
     setSignedIn(false);
   }
 
@@ -117,10 +126,12 @@ export default function Home() {
     window.setTimeout(() => setToast(""), 2800);
   }
 
-  if (!signedIn) return <AuthScreen theme={theme} onToggleTheme={toggleTheme} onAuthenticated={() => setSignedIn(true)} onPreview={() => setSignedIn(true)} />;
+  if (!signedIn) return <AuthScreen theme={theme} onToggleTheme={toggleTheme} onAuthenticated={() => { setCloudSession(true); setSignedIn(true); }} onPreview={() => { setCloudSession(false); setSignedIn(true); }} />;
+  if (cloudSession && !vaultSession) return <VaultGate onUnlocked={(key, revision) => setVaultSession({ key, revision })} onSignOut={signOut} />;
 
   return (
     <div className="app-shell">
+      {vaultSession && <VaultSync vaultKey={vaultSession.key} initialRevision={vaultSession.revision} />}
       <aside className="sidebar">
         <div className="brand-lockup"><BrandMark /><span>KirpiNova</span></div>
         <nav aria-label="Primary navigation">
@@ -137,7 +148,7 @@ export default function Home() {
           <div className="mobile-brand"><BrandMark /><span>KirpiNova</span></div>
           <label className="search-field"><Icon name="search" size={18} /><span className="sr-only">Search KirpiNova</span><input placeholder="Search your workspace" /></label>
           <div className="top-actions">
-            <span className="sync-state"><i /> Encrypted & synced</span>
+            <span className={`sync-state ${syncStatus}`}><i /> {cloudSession ? syncStatus === "syncing" ? "Encrypting changes…" : syncStatus === "conflict" ? "Sync needs attention" : syncStatus === "offline" ? "Saved locally · offline" : "Encrypted & synced" : "Local preview"}</span>
             <button className="icon-button" aria-label="Notifications"><Icon name="bell" /><b>2</b></button>
             <button className="icon-button" onClick={toggleTheme} aria-label={theme === "light" ? "Use dark theme" : "Use light theme"}><Icon name={theme === "light" ? "moon" : "sun"} /></button>
           </div>

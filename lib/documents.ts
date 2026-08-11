@@ -1,3 +1,4 @@
+import { notifyDataChanged } from "@/lib/data-events";
 export type DocumentStatus = "active" | "completed" | "archived";
 
 export type DocumentRecord = {
@@ -63,6 +64,6 @@ export const documentRepository = {
     }
   },
   save(items: DocumentRecord[]) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); notifyDataChanged();
   },
 };

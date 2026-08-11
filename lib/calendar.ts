@@ -1,3 +1,4 @@
+import { notifyDataChanged } from "@/lib/data-events";
 export type CalendarEvent = { id:string; title:string; date:string; startTime:string; endTime:string; kind:"schedule"|"blockout"; category:string; notes:string };
 const KEY="kirpinova-preview-events-v1";
 export const previewEvents:CalendarEvent[]=[
@@ -7,5 +8,5 @@ export const previewEvents:CalendarEvent[]=[
 ];
 export const calendarRepository={
   load():CalendarEvent[]{try{const raw=localStorage.getItem(KEY);if(!raw)return previewEvents;const value=JSON.parse(raw);return Array.isArray(value)?value:previewEvents}catch{return previewEvents}},
-  save(events:CalendarEvent[]){localStorage.setItem(KEY,JSON.stringify(events))}
+  save(events:CalendarEvent[]){localStorage.setItem(KEY,JSON.stringify(events));notifyDataChanged()}
 };

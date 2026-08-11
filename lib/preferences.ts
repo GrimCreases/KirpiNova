@@ -1,3 +1,4 @@
+import { notifyDataChanged } from "@/lib/data-events";
 export type AppPreferences = {
   displayName: string;
   workspaceName: string;
@@ -14,7 +15,7 @@ export const preferencesRepository = {
     try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? { ...defaultPreferences, ...JSON.parse(raw) } : defaultPreferences; }
     catch { return defaultPreferences; }
   },
-  save(value: AppPreferences) { localStorage.setItem(STORAGE_KEY, JSON.stringify(value)); },
+  save(value: AppPreferences) { localStorage.setItem(STORAGE_KEY, JSON.stringify(value)); notifyDataChanged(); },
 };
 
 export const previewStorageKeys = [

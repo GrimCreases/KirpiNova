@@ -1,3 +1,4 @@
+import { notifyDataChanged } from "@/lib/data-events";
 export type Subtask = { id: string; text: string; done: boolean };
 export type Task = {
   id: string; title: string; notes: string; dueDate: string; reminderAt: string;
@@ -19,5 +20,5 @@ function normalize(value: Partial<Task>): Task | null {
 }
 export const taskRepository = {
   load(): Task[] { try { const raw=localStorage.getItem(STORAGE_KEY); if(!raw)return previewTasks; const value=JSON.parse(raw); return Array.isArray(value)?value.map(normalize).filter((x):x is Task=>x!==null):previewTasks; } catch { return previewTasks; } },
-  save(tasks: Task[]) { localStorage.setItem(STORAGE_KEY,JSON.stringify(tasks)); }
+  save(tasks: Task[]) { localStorage.setItem(STORAGE_KEY,JSON.stringify(tasks)); notifyDataChanged(); }
 };

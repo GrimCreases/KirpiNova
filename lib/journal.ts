@@ -1,3 +1,4 @@
+import { notifyDataChanged } from "@/lib/data-events";
 export type JournalEntry = {
   id: string;
   title: string;
@@ -58,5 +59,5 @@ export const journalRepository = {
       return Array.isArray(value) ? value.map(normalize).filter((item): item is JournalEntry => item !== null) : previewJournalEntries;
     } catch { return previewJournalEntries; }
   },
-  save(entries: JournalEntry[]) { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); },
+  save(entries: JournalEntry[]) { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); notifyDataChanged(); },
 };

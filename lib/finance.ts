@@ -1,3 +1,4 @@
+import { notifyDataChanged } from "@/lib/data-events";
 export type TransactionType="income"|"expense"|"saving";
 export type FinanceTransaction={id:string;type:TransactionType;amount:number;currency:string;date:string;description:string;category:string;balanceImpact:"cash"|"none";createdAt:string};
 export type FinanceDraft=Omit<FinanceTransaction,"id"|"createdAt">;
@@ -11,5 +12,5 @@ export const previewTransactions:FinanceTransaction[]=[
  {id:"saving-existing",type:"saving",amount:41084.05,currency:"TRY",date:"2026-08-07",description:"Prior savings recorded",category:"Existing savings",balanceImpact:"none",createdAt:"2026-08-07T09:00:00Z"},
  {id:"transport",type:"expense",amount:1570,currency:"TRY",date:"2026-08-09",description:"Transport",category:"Transport",balanceImpact:"cash",createdAt:"2026-08-09T17:00:00Z"}
 ];
-export const financeRepository={load():FinanceTransaction[]{try{const raw=localStorage.getItem(KEY);if(!raw)return previewTransactions;const v=JSON.parse(raw);return Array.isArray(v)?v:previewTransactions}catch{return previewTransactions}},save(items:FinanceTransaction[]){localStorage.setItem(KEY,JSON.stringify(items))}};
+export const financeRepository={load():FinanceTransaction[]{try{const raw=localStorage.getItem(KEY);if(!raw)return previewTransactions;const v=JSON.parse(raw);return Array.isArray(v)?v:previewTransactions}catch{return previewTransactions}},save(items:FinanceTransaction[]){localStorage.setItem(KEY,JSON.stringify(items));notifyDataChanged()}};
 export const money=(value:number,currency="TRY")=>new Intl.NumberFormat(undefined,{style:"currency",currency,maximumFractionDigits:2}).format(value);
