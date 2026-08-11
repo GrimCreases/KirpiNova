@@ -11,6 +11,7 @@ export type DocumentRecord = {
   notes: string;
   attachmentName: string;
   attachmentType: string;
+  attachmentId: string;
   createdAt: string;
 };
 
@@ -27,12 +28,13 @@ export const emptyDocumentDraft = (): DocumentDraft => ({
   notes: "",
   attachmentName: "",
   attachmentType: "",
+  attachmentId: "",
 });
 
 export const previewDocuments: DocumentRecord[] = [
-  { id: "insurance", title: "Home insurance renewal", category: "Home", dueDate: "2026-08-14", reminderDays: 3, status: "active", notes: "Compare the renewal quote before approving.", attachmentName: "insurance-renewal.pdf", attachmentType: "application/pdf", createdAt: "2026-08-02T09:00:00Z" },
-  { id: "school", title: "School payment receipt", category: "Family", dueDate: "2026-08-15", reminderDays: 1, status: "completed", notes: "Keep with the August family records.", attachmentName: "", attachmentType: "", createdAt: "2026-08-05T10:30:00Z" },
-  { id: "passport", title: "Previous passport copy", category: "Identity", dueDate: "", reminderDays: 7, status: "archived", notes: "Archived after the renewal was completed.", attachmentName: "passport-copy.jpg", attachmentType: "image/jpeg", createdAt: "2026-07-21T13:00:00Z" },
+  { id: "insurance", title: "Home insurance renewal", category: "Home", dueDate: "2026-08-14", reminderDays: 3, status: "active", notes: "Compare the renewal quote before approving.", attachmentName: "", attachmentType: "", attachmentId: "", createdAt: "2026-08-02T09:00:00Z" },
+  { id: "school", title: "School payment receipt", category: "Family", dueDate: "2026-08-15", reminderDays: 1, status: "completed", notes: "Keep with the August family records.", attachmentName: "", attachmentType: "", attachmentId: "", createdAt: "2026-08-05T10:30:00Z" },
+  { id: "passport", title: "Previous passport copy", category: "Identity", dueDate: "", reminderDays: 7, status: "archived", notes: "Archived after the renewal was completed.", attachmentName: "", attachmentType: "", attachmentId: "", createdAt: "2026-07-21T13:00:00Z" },
 ];
 
 function normalize(value: Partial<DocumentRecord>): DocumentRecord | null {
@@ -48,6 +50,7 @@ function normalize(value: Partial<DocumentRecord>): DocumentRecord | null {
     notes: typeof value.notes === "string" ? value.notes : "",
     attachmentName: typeof value.attachmentName === "string" ? value.attachmentName : "",
     attachmentType: typeof value.attachmentType === "string" ? value.attachmentType : "",
+    attachmentId: typeof value.attachmentId === "string" ? value.attachmentId : "",
     createdAt: typeof value.createdAt === "string" ? value.createdAt : new Date().toISOString(),
   };
 }

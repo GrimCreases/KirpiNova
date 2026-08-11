@@ -2,6 +2,8 @@
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { DocumentDraft, DocumentRecord, DocumentStatus, documentRepository, emptyDocumentDraft } from "@/lib/documents";
+import type { CloudVaultKey } from "@/lib/cloud-vault";
+import { deleteEncryptedAttachment, downloadEncryptedAttachment, uploadEncryptedAttachment } from "@/lib/attachment-client";
 
 const today = "2026-08-10";
 const Plus = () => <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 5v14M5 12h14" /></svg>;
@@ -17,7 +19,7 @@ function dueLabel(item: DocumentRecord) {
   return { text: new Date(item.dueDate + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" }), tone: "neutral" };
 }
 
-export function DocumentWorkspace({ onStatus }: { onStatus: (message: string) => void }) {
+export function DocumentWorkspace({ onStatus, vaultKey }: { onStatus: (message: string) => void; vaultKey?: CloudVaultKey }) {
   const [items, setItems] = useState<DocumentRecord[]>([]);
   const [filter, setFilter] = useState<"all" | DocumentStatus | "due">("all");
   const [query, setQuery] = useState("");
@@ -25,6 +27,8 @@ export function DocumentWorkspace({ onStatus }: { onStatus: (message: string) =>
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<DocumentDraft>(emptyDocumentDraft);
   const [previewUrl, setPreviewUrl] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [attachmentBusy, setAttachmentBusy] = useState(false);
 
   useEffect(() => setItems(documentRepository.load()), []);
   useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
@@ -41,8 +45,9 @@ export function DocumentWorkspace({ onStatus }: { onStatus: (message: string) =>
   const open = (item?: DocumentRecord) => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl("");
+    setSelectedFile(null);
     setEditing(item?.id || null);
-    setDraft(item ? { title: item.title, category: item.category, dueDate: item.dueDate, reminderDays: item.reminderDays, status: item.status, notes: item.notes, attachmentName: item.attachmentName, attachmentType: item.attachmentType } : emptyDocumentDraft());
+    setDraft(item ? { title: item.title, category: item.category, dueDate: item.dueDate, reminderDays: item.reminderDays, status: item.status, notes: item.notes, attachmentName: item.attachmentName, attachmentType: item.attachmentType, attachmentId: item.attachmentId } : emptyDocumentDraft());
     setEditor(true);
   };
   const pickAttachment = (event: ChangeEvent<HTMLInputElement>) => {
@@ -50,18 +55,30 @@ export function DocumentWorkspace({ onStatus }: { onStatus: (message: string) =>
     if (!file) return;
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setDraft({ ...draft, attachmentName: file.name, attachmentType: file.type });
+    setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
   };
-  const save = (event: FormEvent) => {
+  const save = async (event: FormEvent) => {
     event.preventDefault();
     const title = draft.title.trim(), category = draft.category.trim();
     if (!title || !category) { onStatus("Add a document title and category."); return; }
-    const clean = { ...draft, title, category, reminderDays: Math.max(0, draft.reminderDays) };
+    setAttachmentBusy(true);
+    let clean = { ...draft, title, category, reminderDays: Math.max(0, draft.reminderDays) };
+    try {
+      if (selectedFile && vaultKey) {
+        const uploaded = await uploadEncryptedAttachment(selectedFile, vaultKey);
+        const previousId = clean.attachmentId;
+        clean = { ...clean, attachmentId: uploaded.id, attachmentName: uploaded.name, attachmentType: uploaded.type };
+        if (previousId && previousId !== uploaded.id) await deleteEncryptedAttachment(previousId);
+      } else if (selectedFile && !vaultKey) clean = { ...clean, attachmentId: "" };
+    } catch (value) { onStatus(value instanceof Error ? value.message : "Attachment upload failed."); setAttachmentBusy(false); return; }
     const next = editing ? items.map((item) => item.id === editing ? { ...item, ...clean } : item) : [...items, { ...clean, id: crypto.randomUUID(), createdAt: new Date().toISOString() }];
     commit(next, editing ? "Document updated." : "Document added.");
     setEditor(false);
+    setAttachmentBusy(false);
   };
-  const remove = () => { if (!editing) return; commit(items.filter((item) => item.id !== editing), "Document deleted."); setEditor(false); };
+  const remove = async () => { if (!editing) return; const item=items.find(value=>value.id===editing);setAttachmentBusy(true);try{if(item?.attachmentId&&vaultKey)await deleteEncryptedAttachment(item.attachmentId);commit(items.filter((item) => item.id !== editing), "Document deleted.");setEditor(false)}catch(value){onStatus(value instanceof Error?value.message:"Document attachment could not be deleted.")}finally{setAttachmentBusy(false)} };
+  const viewAttachment = async () => { if (!draft.attachmentId || !vaultKey) return; setAttachmentBusy(true); try { const result=await downloadEncryptedAttachment(draft.attachmentId,draft.attachmentName,draft.attachmentType,vaultKey); if(previewUrl)URL.revokeObjectURL(previewUrl); setPreviewUrl(result.url); if(!draft.attachmentType.startsWith("image/"))window.open(result.url,"_blank","noopener,noreferrer"); } catch(value){onStatus(value instanceof Error?value.message:"Attachment could not be opened.")} finally{setAttachmentBusy(false)} };
 
   return <section className="document-workspace">
     <div className="document-summary" aria-label="Document overview">
@@ -93,9 +110,10 @@ export function DocumentWorkspace({ onStatus }: { onStatus: (message: string) =>
           <div className="editor-grid"><label className="field"><span>Due date</span><input type="date" value={draft.dueDate} onChange={(event) => setDraft({ ...draft, dueDate: event.target.value })} /></label><label className="field"><span>Remind before</span><span className="number-suffix"><input type="number" min="0" max="365" value={draft.reminderDays} onChange={(event) => setDraft({ ...draft, reminderDays: Number(event.target.value) })} /><i>days</i></span></label></div>
           <label className="field"><span>Status</span><select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value as DocumentStatus })}><option value="active">Active</option><option value="completed">Completed</option><option value="archived">Archived</option></select></label>
           <label className="field"><span>Notes</span><textarea rows={4} value={draft.notes} onChange={(event) => setDraft({ ...draft, notes: event.target.value })} placeholder="Useful context, renewal details, or where the original is kept" /></label>
-          <label className="attachment-picker"><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={pickAttachment} /><FileIcon /><span><strong>{draft.attachmentName || "Attach an image or PDF"}</strong><small>{draft.attachmentName ? "Choose again to replace it" : "Stored in this browser session for now"}</small></span></label>
+          <label className="attachment-picker"><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={pickAttachment} /><FileIcon /><span><strong>{draft.attachmentName || "Attach an image or PDF"}</strong><small>{draft.attachmentName ? "Choose again to replace it" : vaultKey ? "Encrypted before private cloud upload" : "Stored for this preview session"}</small></span></label>
+          {draft.attachmentId && vaultKey && !previewUrl && <button type="button" className="secondary-button attachment-open" onClick={viewAttachment} disabled={attachmentBusy}>Decrypt and open attachment</button>}
           {previewUrl && draft.attachmentType.startsWith("image/") && <a className="attachment-preview" href={previewUrl} target="_blank" rel="noreferrer"><img src={previewUrl} alt={`Preview of ${draft.attachmentName}`} /><span>Open full-size preview</span></a>}
-          <div className="editor-actions">{editing && <button type="button" className="danger-button" onClick={remove}>Delete</button>}<span /><button type="button" className="secondary-button" onClick={() => setEditor(false)}>Cancel</button><button className="primary-button" type="submit">{editing ? "Save changes" : "Add document"}</button></div>
+          <div className="editor-actions">{editing && <button type="button" className="danger-button" onClick={remove} disabled={attachmentBusy}>Delete</button>}<span /><button type="button" className="secondary-button" onClick={() => setEditor(false)} disabled={attachmentBusy}>Cancel</button><button className="primary-button" type="submit" disabled={attachmentBusy}>{attachmentBusy ? "Encrypting…" : editing ? "Save changes" : "Add document"}</button></div>
         </form>
       </aside>}
     </div>
