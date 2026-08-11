@@ -18,6 +18,8 @@ State-changing API routes validate Fetch Metadata and Origin headers before acti
 
 Next.js currently requires inline bootstrap scripts, so `script-src` includes `'unsafe-inline'`; development additionally requires `'unsafe-eval'`. No application code uses inline event handlers or `eval`. Revisit nonce-based CSP when the framework deployment path supports it without breaking hydration.
 
+Cloud reset first removes encrypted attachment objects, then deletes their metadata and the encrypted vault in one database transaction. Browser data is cleared only after the server confirms success. Download and verify an encrypted archive before resetting if continuity is required.
+
 The service worker caches only `/offline.html` and `/kirpinova-icon.svg`. It never caches account pages, encrypted vault API responses, attachment URLs, or other `/api` traffic.
 
 ## Deployment checklist

@@ -1,4 +1,5 @@
 import { previewStorageKeys } from "@/lib/preferences";
+import { notifyDataChanged } from "@/lib/data-events";
 
 type EncryptedArchive = {
   format: "kirpinova-encrypted-archive";
@@ -48,6 +49,7 @@ export async function restoreEncryptedArchive(source: string, passphrase: string
     const allowed = new Set(previewStorageKeys); let restored = 0;
     for (const [storageKey, value] of Object.entries(payload.data)) if (allowed.has(storageKey) && typeof value === "string") { localStorage.setItem(storageKey, value); restored += 1; }
     if (!restored) throw new Error("empty payload");
+    notifyDataChanged();
     return restored;
   } catch { throw new Error("The passphrase is incorrect, or the archive has been damaged."); }
 }
