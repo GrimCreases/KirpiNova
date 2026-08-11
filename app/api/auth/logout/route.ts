@@ -1,0 +1,1 @@
+import { revokeSession } from "@/lib/server/auth/session";export const runtime="nodejs";export const dynamic="force-dynamic";export async function POST(){try{await revokeSession()}catch{}return Response.json({ok:true},{headers:{"Cache-Control":"no-store"}})}

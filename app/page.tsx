@@ -9,6 +9,7 @@ import { JournalWorkspace } from "@/components/journal-workspace";
 import { PeopleWorkspace } from "@/components/people-workspace";
 import { SettingsWorkspace } from "@/components/secure-settings-workspace";
 import { DashboardWorkspace } from "@/components/dashboard-workspace";
+import { AuthScreen } from "@/components/auth-screen";
 
 type IconName =
   | "home" | "task" | "calendar" | "finance" | "document" | "journal"
@@ -84,6 +85,13 @@ export default function Home() {
     document.documentElement.dataset.theme = next;
   }, []);
 
+
+  useEffect(() => {
+    fetch("/api/auth/session", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((value) => { if (value.authenticated) setSignedIn(true); })
+      .catch(() => undefined);
+  }, []);
   function toggleTheme() {
     changeTheme(theme === "light" ? "dark" : "light");
   }
@@ -99,42 +107,17 @@ export default function Home() {
     setSignedIn(true);
   }
 
+  async function signOut() {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);
+    setSignedIn(false);
+  }
+
   function announce(message: string) {
     setToast(message);
     window.setTimeout(() => setToast(""), 2800);
   }
 
-  if (!signedIn) {
-    return (
-      <main className="auth-shell">
-        <section className="auth-brand-panel" aria-labelledby="welcome-title">
-          <div className="auth-brand-top"><BrandMark /><span>KirpiNova</span></div>
-          <div className="auth-message">
-            <p className="section-label">One encrypted workspace</p>
-            <h1 id="welcome-title">Keep life connected,<br />without giving up control.</h1>
-            <p>Plans, finances, documents, memories, and the people who matter—organized together and encrypted before they reach the cloud.</p>
-          </div>
-          <div className="auth-trust"><Icon name="lock" size={18} /><span>Your archive stays yours. Download it, remove the cloud copy, and return whenever you choose.</span></div>
-        </section>
-        <section className="auth-form-panel">
-          <button className="icon-button theme-toggle" type="button" onClick={toggleTheme} aria-label={theme === "light" ? "Use dark theme" : "Use light theme"}><Icon name={theme === "light" ? "moon" : "sun"} /></button>
-          <form className="auth-form" onSubmit={signIn}>
-            <div className="auth-heading">
-              <BrandMark />
-              <p>Welcome back</p>
-              <h2>Open your workspace</h2>
-              <span>This milestone uses a local preview sign-in. Cloud authentication comes in the account phase.</span>
-            </div>
-            <label className="field"><span>Email address</span><input type="email" defaultValue="hello@kirpinova.app" autoComplete="email" required /></label>
-            <label className="field"><span>Password</span><span className="password-field"><input type={showPassword ? "text" : "password"} defaultValue="preview123" autoComplete="current-password" required /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}><Icon name={showPassword ? "eyeOff" : "eye"} /></button></span></label>
-            <div className="form-row"><label className="check-row"><input type="checkbox" defaultChecked /><span>Remember this device</span></label><button className="text-button" type="button">Forgot password?</button></div>
-            <button className="primary-button" type="submit">Continue securely <Icon name="arrow" /></button>
-            <p className="auth-footnote"><Icon name="lock" size={15} /> Encrypted workspace preview</p>
-          </form>
-        </section>
-      </main>
-    );
-  }
+  if (!signedIn) return <AuthScreen theme={theme} onToggleTheme={toggleTheme} onAuthenticated={() => setSignedIn(true)} onPreview={() => setSignedIn(true)} />;
 
   return (
     <div className="app-shell">
@@ -145,7 +128,7 @@ export default function Home() {
         </nav>
         <div className="sidebar-bottom">
           <button className="nav-item" onClick={() => setActive("Settings")}><Icon name="settings" /><span>Settings</span></button>
-          <div className="profile-chip"><span className="avatar">YL</span><span><strong>Yunus</strong><small>Personal workspace</small></span><button aria-label="Open account menu"><Icon name="more" size={18} /></button></div>
+          <div className="profile-chip"><span className="avatar">YL</span><span><strong>Yunus</strong><small>Personal workspace</small></span><button aria-label="Sign out" title="Sign out" onClick={signOut}><Icon name="lock" size={18} /></button></div>
         </div>
       </aside>
 
