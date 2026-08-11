@@ -1,3 +1,4 @@
+import { isTrustedMutation } from "@/lib/server/origin";
 import { getDatabasePool } from "@/lib/server/database";
 import { verifyPassword } from "@/lib/server/auth/password";
 import { emailAddress,jsonError,passwordValue,readJson } from "@/lib/server/auth/request";
@@ -5,7 +6,8 @@ import { createSession } from "@/lib/server/auth/session";
 import { checkLoginThrottle,clearEmailThrottle } from "@/lib/server/auth/throttle";
 
 export const runtime="nodejs"; export const dynamic="force-dynamic";
-export async function POST(request:Request){
+export async function POST(request:Request) {
+  if(!isTrustedMutation(request))return jsonError("Cross-site requests are not allowed.",403);
   try {
     const body=await readJson(request),email=emailAddress(body.email),password=passwordValue(body.password);
     if(!await checkLoginThrottle(request,email))return jsonError("Too many sign-in attempts. Wait 15 minutes and try again.",429);

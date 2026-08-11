@@ -1,3 +1,4 @@
+import { isTrustedMutation } from "@/lib/server/origin";
 import { randomBytes } from "node:crypto";
 import { withDatabaseTransaction } from "@/lib/server/database-transaction";
 import { hashPassword, validatePassword } from "@/lib/server/auth/password";
@@ -5,7 +6,8 @@ import { emailAddress,jsonError,passwordValue,readJson,validEmail } from "@/lib/
 import { tokenHash } from "@/lib/server/auth/session";
 
 export const runtime="nodejs"; export const dynamic="force-dynamic";
-export async function POST(request:Request){
+export async function POST(request:Request) {
+  if(!isTrustedMutation(request))return jsonError("Cross-site requests are not allowed.",403);
   try {
     const body=await readJson(request),email=emailAddress(body.email),password=passwordValue(body.password);
     if(!validEmail(email)) return jsonError("Enter a valid email address.");

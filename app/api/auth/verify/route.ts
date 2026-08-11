@@ -1,9 +1,11 @@
+import { isTrustedMutation } from "@/lib/server/origin";
 import { withDatabaseTransaction } from "@/lib/server/database-transaction";
 import { jsonError,readJson } from "@/lib/server/auth/request";
 import { createSession,tokenHash } from "@/lib/server/auth/session";
 
 export const runtime="nodejs"; export const dynamic="force-dynamic";
-export async function POST(request:Request){
+export async function POST(request:Request) {
+  if(!isTrustedMutation(request))return jsonError("Cross-site requests are not allowed.",403);
   try {
     const body=await readJson(request),token=typeof body.token==="string"?body.token:"";
     if(token.length<32) return jsonError("Verification link is invalid or expired.");
