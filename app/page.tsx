@@ -12,6 +12,7 @@ import { DashboardWorkspace } from "@/components/dashboard-workspace";
 import { AuthScreen } from "@/components/auth-screen";
 import { VaultGate } from "@/components/vault-gate";
 import { VaultSync } from "@/components/vault-sync";
+import { ReminderCenter } from "@/components/reminder-center";
 import type { CloudVaultKey } from "@/lib/cloud-vault";
 
 type IconName =
@@ -149,7 +150,7 @@ export default function Home() {
           <label className="search-field"><Icon name="search" size={18} /><span className="sr-only">Search KirpiNova</span><input placeholder="Search your workspace" /></label>
           <div className="top-actions">
             <span className={`sync-state ${syncStatus}`}><i /> {cloudSession ? syncStatus === "syncing" ? "Encrypting changes…" : syncStatus === "conflict" ? "Sync needs attention" : syncStatus === "offline" ? "Saved locally · offline" : "Encrypted & synced" : "Local preview"}</span>
-            <button className="icon-button" aria-label="Notifications"><Icon name="bell" /><b>2</b></button>
+            <ReminderCenter onNavigate={setActive} />
             <button className="icon-button" onClick={toggleTheme} aria-label={theme === "light" ? "Use dark theme" : "Use light theme"}><Icon name={theme === "light" ? "moon" : "sun"} /></button>
           </div>
         </header>

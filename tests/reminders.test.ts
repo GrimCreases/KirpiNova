@@ -1,0 +1,6 @@
+import assert from "node:assert/strict";import test from "node:test";import { collectDueReminders } from "../lib/reminders";import type { Task } from "../lib/tasks";import type { DocumentRecord } from "../lib/documents";
+const task=(value:Partial<Task>):Task=>({id:"t1",title:"Call doctor",notes:"",dueDate:"2026-08-12",reminderAt:"2026-08-11T09:00",category:"Personal",priority:"medium",done:false,subtasks:[],createdAt:"2026-08-01",...value});
+const document=(value:Partial<DocumentRecord>):DocumentRecord=>({id:"d1",title:"Renew insurance",category:"Home",dueDate:"2026-08-12",reminderDays:1,status:"active",notes:"",attachmentName:"",attachmentType:"",attachmentId:"",createdAt:"2026-08-01",...value});
+test("collects due task and document reminders",()=>{const result=collectDueReminders([task({})],[document({})],new Date("2026-08-11T10:00:00"));assert.deepEqual(result.map(item=>item.kind),["task","document"])});
+test("ignores completed tasks and inactive documents",()=>{const result=collectDueReminders([task({done:true})],[document({status:"completed"})],new Date("2026-08-20T10:00:00"));assert.equal(result.length,0)});
+test("does not fire before configured times",()=>{const result=collectDueReminders([task({})],[document({})],new Date("2026-08-10T08:59:00"));assert.equal(result.length,0)});
