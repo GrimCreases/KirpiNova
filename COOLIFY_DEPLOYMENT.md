@@ -58,10 +58,10 @@ Add the HTTPS domain in Coolify and enable its managed TLS certificate. Do not p
 
 ## 7. Current data boundary
 
-Records still live in each visitor's browser. Deployment does not move them to the VPS. Authentication, encrypted cloud envelopes, PostgreSQL, attachments, and synchronization are upcoming milestones.
+Workspace records are encrypted in the browser before the cloud vault is written to PostgreSQL. The server stores opaque ciphertext. Attachments are encrypted in the browser and stored in a private S3-compatible bucket. Browser-local repositories remain the active working cache and encrypted archive source.
 
-Do not invite real users or store important personal information until those security milestones are complete.
+Before inviting real users, verify PostgreSQL migrations, S3 CORS and lifecycle rules, HTTPS, backup restoration, session-cookie behavior, and encrypted vault/attachment round trips in the production environment.
 
 ## 8. Updates
 
-Push a verified release to the production branch and deploy it through Coolify. Retain the previous successful deployment for rollback. Database migration and backup checks will be added with PostgreSQL.
+Push a verified release to the production branch and deploy it through Coolify. Retain the previous successful deployment for rollback. Run database migrations during deployment, verify `/api/ready`, retain the previous successful release for rollback, and test both database and object-storage restoration regularly.

@@ -1,6 +1,6 @@
 # Run KirpiNova Web on your PC
 
-This guide runs the first KirpiNova web milestone locally on Windows. Nothing is deployed, and this milestone does not connect to a cloud database.
+This guide runs KirpiNova Web locally on Windows. The interface can be explored without deployment; real account, encrypted vault, and attachment flows require the PostgreSQL and object-storage variables documented in `.env.example`.
 
 ## 1. Install Node.js
 
@@ -57,12 +57,14 @@ Open that address in Chrome, Edge, or Firefox.
 
 The sign-in screen contains preview values. Select **Continue securely** to open the dashboard.
 
-This is a visual milestone only:
+Without external service variables, local use is limited to browser-backed preview data:
 
 - the preview sign-in does not contact a server;
 - the dashboard uses representative demonstration data;
 - the theme preference is remembered in this browser;
-- cloud accounts and encrypted synchronization will be added in a later milestone.
+- cloud accounts and encrypted synchronization are implemented but require PostgreSQL configuration;
+- encrypted attachments require private S3-compatible object storage;
+- live currency conversion uses the credential-free Frankfurter/ECB endpoint.
 
 ## 6. Stop the local server
 

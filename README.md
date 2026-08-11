@@ -1,17 +1,25 @@
 # KirpiNova Web
 
-The first KirpiNova web milestone: a Next.js and TypeScript application shell with preview authentication, responsive navigation, equal light/dark themes, and a representative life-horizon dashboard.
+KirpiNova is a private, unified workspace for personal and family organization. This repository contains the web application built with Next.js, TypeScript, PostgreSQL, and client-side encrypted cloud storage.
 
-See [RUN_LOCALLY.md](./RUN_LOCALLY.md) for complete Windows setup instructions.
+See [RUN_LOCALLY.md](./RUN_LOCALLY.md) for Windows setup and [COOLIFY_DEPLOYMENT.md](./COOLIFY_DEPLOYMENT.md) for production deployment.
 
-## Current milestone
+## Current release
 
-- Responsive login and dashboard
-- Remembered light/dark theme
-- Desktop sidebar and mobile bottom navigation
-- Representative agenda, tasks, finance, and family information
-- Accessible keyboard focus and password visibility control
-- Placeholder destinations for future feature migrations
-- Working Tasks workspace with creation, editing, subtasks, reminders, filters, and preview persistence
+- Real account registration, login, session rotation, and request throttling
+- Client-side encrypted cloud vault stored as an opaque PostgreSQL envelope
+- Encrypted attachment upload and download through private S3-compatible storage
+- Tasks with subtasks and reminder times
+- Calendar, Finance, Documents, Journal, People, and Settings workspaces
+- On-device task and document reminder center while KirpiNova is open
+- Finance subscriptions with reliable record-to-transaction behavior
+- ECB-derived EUR, TRY, USD, and GBP conversion through an allow-listed cached endpoint
+- Configurable Finance report currency with consistent Dashboard totals
+- Encrypted local archive download and restore
+- Responsive light and dark interfaces
 
-Tasks currently persist in local browser storage through a typed repository boundary. Cloud authentication, encrypted persistence, notification delivery, and production data migration remain later milestones.
+## Verification
+
+Run `npm.cmd run check` on Windows. The command validates TypeScript, database migrations, automated tests, and the production build.
+
+External PostgreSQL, S3-compatible storage, email delivery, and production TLS still require deployment credentials and live-environment verification. Do not commit secrets to this repository.
