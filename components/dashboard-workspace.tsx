@@ -1,0 +1,40 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { CalendarEvent, calendarRepository } from "@/lib/calendar";
+import { DocumentRecord, documentRepository } from "@/lib/documents";
+import { FinanceTransaction, financeRepository, money } from "@/lib/finance";
+import { PersonRecord, peopleRepository } from "@/lib/people";
+import { Task, taskRepository } from "@/lib/tasks";
+
+type Destination = "Tasks" | "Calendar" | "Finance" | "Documents" | "Journal" | "People";
+const today = () => new Date().toISOString().slice(0,10);
+const Arrow = () => <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M5 12h14M14 7l5 5-5 5"/></svg>;
+const Check = () => <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 4 4L19 6"/></svg>;
+const CalendarIcon = () => <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>;
+const DocumentIcon = () => <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M6 2h8l4 4v16H6zM14 2v5h5M9 12h6M9 16h6"/></svg>;
+
+export function DashboardWorkspace({ onNavigate, onStatus }: { onNavigate: (destination: Destination) => void; onStatus: (message: string) => void }) {
+  const [tasks, setTasks] = useState<Task[]>([]), [events, setEvents] = useState<CalendarEvent[]>([]), [finance, setFinance] = useState<FinanceTransaction[]>([]), [documents, setDocuments] = useState<DocumentRecord[]>([]), [people, setPeople] = useState<PersonRecord[]>([]);
+  useEffect(() => { setTasks(taskRepository.load()); setEvents(calendarRepository.load()); setFinance(financeRepository.load()); setDocuments(documentRepository.load()); setPeople(peopleRepository.load()); }, []);
+  const date = today(), month = date.slice(0,7);
+  const dayEvents = events.filter((event) => event.date === date).sort((a,b) => a.startTime.localeCompare(b.startTime));
+  const openTasks = tasks.filter((task) => !task.done).sort((a,b) => (a.dueDate || "9999").localeCompare(b.dueDate || "9999"));
+  const completed = tasks.filter((task) => task.done).length, totalTasks = tasks.length, progress = totalTasks ? Math.round(completed / totalTasks * 100) : 0;
+  const monthFinance = finance.filter((item) => item.date.startsWith(month) && item.currency === "TRY");
+  const sum = (type: FinanceTransaction["type"], impact?: FinanceTransaction["balanceImpact"]) => monthFinance.filter((item) => item.type === type && (!impact || item.balanceImpact === impact)).reduce((total,item) => total + item.amount,0);
+  const income = sum("income"), expenses = sum("expense"), cashSavings = sum("saving","cash"), balance = income - expenses - cashSavings;
+  const dueDocuments = documents.filter((item) => item.status === "active" && item.dueDate).sort((a,b) => a.dueDate.localeCompare(b.dueDate));
+  const closePeople = people.filter((person) => person.favorite).slice(0,3);
+  const toggleTask = (task: Task) => { const next = tasks.map((item) => item.id === task.id ? { ...item, done: !item.done } : item); setTasks(next); taskRepository.save(next); onStatus(task.done ? "Task reopened." : "Task completed."); };
+  const attentionCopy = useMemo(() => `${dayEvents.length} scheduled ${dayEvents.length === 1 ? "moment" : "moments"}, ${openTasks.length} open ${openTasks.length === 1 ? "task" : "tasks"}, and ${dueDocuments.length} active ${dueDocuments.length === 1 ? "document" : "documents"}.`, [dayEvents.length,openTasks.length,dueDocuments.length]);
+  return <>
+    <section className="today-band"><div className="today-copy"><span className="horizon-marker">Now</span><h2>Your day, in one line of sight.</h2><p>{attentionCopy}</p></div><div className="dashboard-secure"><span>Local preview</span><strong>Your migrated modules are connected.</strong><small>Encrypted cloud sync is the next infrastructure phase.</small></div><div className="day-progress"><span><strong>{completed}</strong> completed</span><span><strong>{openTasks.length}</strong> remaining</span><div><i style={{width:`${progress}%`}}/></div></div></section>
+    <div className="dashboard-grid">
+      <section className="agenda-section"><div className="section-heading"><div><span className="horizon-marker">Now</span><h2>Today’s rhythm</h2></div><button className="text-button" onClick={() => onNavigate("Calendar")}>Open calendar <Arrow/></button></div><div className="agenda-list">{dayEvents.length ? dayEvents.map((event) => <button className="agenda-row dashboard-agenda-row" key={event.id} onClick={() => onNavigate("Calendar")}><time>{event.startTime}</time><span className={`agenda-dot ${event.kind === "blockout" ? "violet" : "teal"}`}/><div><h3>{event.title}</h3><p>{event.category} · {event.endTime ? `until ${event.endTime}` : "Open time"}</p></div><Arrow/></button>) : <div className="dashboard-empty-line"><span>Your calendar is open today.</span><button className="text-button" onClick={() => onNavigate("Calendar")}>Plan something</button></div>}</div></section>
+      <section className="tasks-section"><div className="section-heading"><div><span className="horizon-marker">Next</span><h2>Tasks in motion</h2></div><button className="count" onClick={() => onNavigate("Tasks")}>{openTasks.length} open</button></div><div className="task-list">{openTasks.slice(0,4).map((task) => <label className="task-row" key={task.id}><input type="checkbox" checked={task.done} onChange={() => toggleTask(task)}/><span className="task-check"><Check/></span><button onClick={() => onNavigate("Tasks")}><strong>{task.title}</strong><small>{task.category}{task.subtasks.length ? ` · ${task.subtasks.filter((item) => item.done).length}/${task.subtasks.length} subtasks` : ""}</small></button></label>)}</div><button className="secondary-button full" onClick={() => onNavigate("Tasks")}>Open tasks</button></section>
+      <section className="finance-strip"><div className="section-heading"><div><span className="horizon-marker">Later</span><h2>{new Date(date + "T12:00:00").toLocaleDateString(undefined,{month:"long"})} at a glance</h2></div><button className="text-button" onClick={() => onNavigate("Finance")}>Open finance <Arrow/></button></div><div className="finance-values"><div><span>Available balance</span><strong className="balance">{money(balance)}</strong><small>After cash savings</small></div><div><span>Income</span><strong className="positive">{money(income)}</strong><small>This month</small></div><div><span>Expenses</span><strong className="negative">{money(expenses)}</strong><small>{income ? Math.round(expenses/income*100) : 0}% of income</small></div><div><span>Savings</span><strong className="saving">{money(cashSavings)}</strong><small>Cash savings only</small></div></div></section>
+      <section className="family-section"><div className="section-heading"><div><span className="horizon-marker">Shared</span><h2>People and records</h2></div><button className="avatar-stack" onClick={() => onNavigate("People")} aria-label="Open close people">{closePeople.map((person) => <span key={person.id}>{person.name.split(/\s+/).map((part) => part[0]).join("").slice(0,2)}</span>)}{people.length > closePeople.length && <span>+{people.length-closePeople.length}</span>}</button></div>{dueDocuments.slice(0,2).map((document) => <button className="family-note" key={document.id} onClick={() => onNavigate("Documents")}><DocumentIcon/><div><strong>{document.title}</strong><span>{document.category} · {document.dueDate ? new Date(document.dueDate+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"}) : "No due date"}</span></div></button>)}{!dueDocuments.length && <button className="family-note" onClick={() => onNavigate("Documents")}><CalendarIcon/><div><strong>No document deadlines</strong><span>Your active records are clear.</span></div></button>}</section>
+    </div>
+  </>;
+}
