@@ -16,6 +16,7 @@ See [RUN_LOCALLY.md](./RUN_LOCALLY.md) for Windows setup and [COOLIFY_DEPLOYMENT
 - ECB-derived EUR, TRY, USD, and GBP conversion through an allow-listed cached endpoint
 - Configurable Finance report currency with consistent Dashboard totals
 - Encrypted local archive download and restore
+- Installable PWA manifest with a privacy-safe offline fallback that never caches account or API responses
 - Responsive light and dark interfaces
 
 ## Verification

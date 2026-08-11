@@ -1,0 +1,2 @@
+import type {MetadataRoute} from "next";
+export default function manifest():MetadataRoute.Manifest{return{name:"KirpiNova",short_name:"KirpiNova",description:"Your life, organized in one encrypted workspace.",start_url:"/",display:"standalone",background_color:"#f4f7f5",theme_color:"#0f5b57",icons:[{src:"/kirpinova-icon.svg",sizes:"any",type:"image/svg+xml",purpose:"any"}]}}
