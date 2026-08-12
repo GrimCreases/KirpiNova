@@ -1,0 +1,16 @@
+import {currentUser} from "@/lib/server/auth/session";
+import {isTrustedMutation} from "@/lib/server/origin";
+import {jsonError} from "@/lib/server/auth/request";
+import {validateReceiptScan} from "@/lib/receipt-scan";
+export const runtime="nodejs";export const dynamic="force-dynamic";
+const MODEL="gemini-3.1-flash-lite",MAX_IMAGE=8*1024*1024,MAX_BODY=12*1024*1024,types=new Set(["image/jpeg","image/png","image/webp"]);
+const schema={type:"object",properties:{total:{type:"number"},currency:{type:"string"},date:{anyOf:[{type:"string"},{type:"null"}]},merchant:{anyOf:[{type:"string"},{type:"null"}]},category:{anyOf:[{type:"string"},{type:"null"}]},confidence:{type:"string",enum:["high","low"]}},required:["total","currency","date","merchant","category","confidence"],additionalProperties:false};
+export async function POST(request:Request){
+ if(!isTrustedMutation(request))return jsonError("Cross-site requests are not allowed.",403);if(!await currentUser())return jsonError("Authentication required.",401);
+ try{const length=Number(request.headers.get("content-length")||0);if(!Number.isFinite(length)||length<=0||length>MAX_BODY)return jsonError("Receipt image is too large.",413);const body=await request.json() as Record<string,unknown>,apiKey=typeof body.apiKey==="string"?body.apiKey.trim():"",mimeType=typeof body.mimeType==="string"?body.mimeType:"",imageBase64=typeof body.imageBase64==="string"?body.imageBase64:"",categories=Array.isArray(body.categories)?body.categories.filter((value):value is string=>typeof value==="string").map(value=>value.trim()).filter(Boolean).slice(0,100):[];
+ if(!apiKey)return jsonError("Add a Gemini API key in Settings before scanning.");if(!types.has(mimeType))return jsonError("Use a JPEG, PNG, or WebP receipt image.");if(!/^[A-Za-z0-9+/]+={0,2}$/.test(imageBase64))return jsonError("Receipt image data is invalid.");const bytes=Buffer.byteLength(imageBase64,"base64");if(bytes<1||bytes>MAX_IMAGE)return jsonError("Receipt image must be 8 MB or smaller.",413);
+ const prompt=`Extract this receipt. Return only the structured result. Category must exactly match one of these existing categories or be null: ${JSON.stringify(categories)}. Use ISO 4217 currency and YYYY-MM-DD date. Set confidence low when any important field is uncertain.`;
+ const response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,{method:"POST",redirect:"error",signal:AbortSignal.timeout(30_000),headers:{"Content-Type":"application/json","x-goog-api-key":apiKey},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt},{inlineData:{mimeType,data:imageBase64}}]}],generationConfig:{responseMimeType:"application/json",responseJsonSchema:schema,temperature:0}})});
+ if(!response.ok)return jsonError(`Gemini could not scan the receipt (HTTP ${response.status}).`,502);const result=await response.json() as {candidates?:Array<{content?:{parts?:Array<{text?:string}>}}>},text=result.candidates?.[0]?.content?.parts?.find(part=>typeof part.text==="string")?.text;if(!text)throw new Error("Gemini returned no receipt data.");return Response.json(validateReceiptScan(JSON.parse(text),categories),{headers:{"Cache-Control":"no-store"}})
+ }catch(error){return jsonError(error instanceof Error?error.message:"Receipt scan failed.",502)}
+}

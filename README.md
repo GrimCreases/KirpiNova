@@ -13,6 +13,7 @@ See [RUN_LOCALLY.md](./RUN_LOCALLY.md) for Windows setup, [COOLIFY_DEPLOYMENT.md
 - Calendar, Finance, Documents, Journal, People, and Settings workspaces
 - On-device task and document reminder center while KirpiNova is open
 - Finance subscriptions with reliable record-to-transaction behavior
+- Sequential Gemini 3.1 Flash Lite receipt scanning with editable review drafts and encrypted receipt attachments
 - ECB-derived EUR, TRY, USD, and GBP conversion through an allow-listed cached endpoint
 - Configurable Finance report currency with consistent Dashboard totals
 - Encrypted local archive download and restore, including safe restore-to-cloud synchronization

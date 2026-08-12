@@ -170,7 +170,7 @@ export default function Home() {
           ) : active === "Documents" ? (
             <DocumentWorkspace onStatus={announce} vaultKey={vaultSession?.key} />
           ) : active === "Finance" ? (
-            <FinanceWorkspace onStatus={announce} />
+            <FinanceWorkspace onStatus={announce} vaultKey={vaultSession?.key} />
           ) : active === "Calendar" ? (
             <CalendarWorkspace onStatus={announce} />
           ) : active === "Tasks" ? (

@@ -1,6 +1,6 @@
 import { notifyDataChanged } from "@/lib/data-events";
 export type TransactionType="income"|"expense"|"saving";
-export type FinanceTransaction={id:string;type:TransactionType;amount:number;currency:string;date:string;description:string;category:string;balanceImpact:"cash"|"none";createdAt:string};
+export type FinanceTransaction={id:string;type:TransactionType;amount:number;currency:string;date:string;description:string;category:string;balanceImpact:"cash"|"none";createdAt:string;receiptAttachmentId?:string;receiptAttachmentName?:string;receiptAttachmentType?:string};
 export type FinanceDraft=Omit<FinanceTransaction,"id"|"createdAt">;
 export type FinanceSubscription={id:string;name:string;amount:number;currency:string;category:string;nextDueDate:string;frequency:"monthly"|"yearly";active:boolean;lastRecordedDueDate?:string;createdAt:string};
 export type FinanceSubscriptionDraft=Omit<FinanceSubscription,"id"|"createdAt"|"lastRecordedDueDate">;
