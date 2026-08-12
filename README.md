@@ -18,6 +18,7 @@ See [RUN_LOCALLY.md](./RUN_LOCALLY.md) for Windows setup, [COOLIFY_DEPLOYMENT.md
 - Configurable Finance report currency with consistent Dashboard totals
 - Encrypted local archive download and restore, including safe restore-to-cloud synchronization
 - Typed-confirmation cloud reset that removes the encrypted vault, encrypted attachments, and browser cache
+- Three opt-in Dashboard insights for task completion, expense trends, and journal wellbeing, rendered without external chart code
 - Installable PWA manifest with a privacy-safe offline fallback that never caches account or API responses
 - Responsive light and dark interfaces
 

@@ -7,10 +7,11 @@ export type AppPreferences = {
   reminderHour: string;
   weekStartsMonday: boolean;
   reportCurrency: "TRY" | "EUR" | "USD" | "GBP";
+  insightWidgets: Array<"taskCompletion"|"expenseTrend"|"wellbeing">;
 };
 
 const STORAGE_KEY = "kirpinova-preview-preferences-v1";
-export const defaultPreferences: AppPreferences = { displayName: "Yunus", workspaceName: "Personal workspace", geminiApiKey: "", remindersEnabled: true, reminderHour: "09:00", weekStartsMonday: true, reportCurrency: "TRY" };
+export const defaultPreferences: AppPreferences = { displayName: "Yunus", workspaceName: "Personal workspace", geminiApiKey: "", remindersEnabled: true, reminderHour: "09:00", weekStartsMonday: true, reportCurrency: "TRY", insightWidgets: [] };
 export const preferencesRepository = {
   load(): AppPreferences {
     try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? { ...defaultPreferences, ...JSON.parse(raw) } : defaultPreferences; }

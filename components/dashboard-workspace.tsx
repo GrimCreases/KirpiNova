@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {InsightWidgets} from "@/components/insight-widgets";
+import {JournalEntry,journalRepository} from "@/lib/journal";
 import { CalendarEvent, calendarRepository } from "@/lib/calendar";
 import { DocumentRecord, documentRepository } from "@/lib/documents";
 import { convertAmount, ExchangeRates, loadExchangeRates } from "@/lib/currency";
@@ -17,8 +19,8 @@ const CalendarIcon = () => <svg aria-hidden="true" viewBox="0 0 24 24" width="20
 const DocumentIcon = () => <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M6 2h8l4 4v16H6zM14 2v5h5M9 12h6M9 16h6"/></svg>;
 
 export function DashboardWorkspace({ onNavigate, onStatus }: { onNavigate: (destination: Destination) => void; onStatus: (message: string) => void }) {
-  const [tasks, setTasks] = useState<Task[]>([]), [events, setEvents] = useState<CalendarEvent[]>([]), [finance, setFinance] = useState<FinanceTransaction[]>([]), [documents, setDocuments] = useState<DocumentRecord[]>([]), [people, setPeople] = useState<PersonRecord[]>([]), [rates,setRates] = useState<ExchangeRates|null>(null), [reportCurrency,setReportCurrency] = useState<"TRY"|"EUR"|"USD"|"GBP">("TRY");
-  useEffect(() => { setTasks(taskRepository.load()); setEvents(calendarRepository.load()); setFinance(financeRepository.load()); setDocuments(documentRepository.load()); setPeople(peopleRepository.load()); setReportCurrency(preferencesRepository.load().reportCurrency); const controller=new AbortController(); loadExchangeRates(controller.signal).then(setRates).catch(()=>undefined); return()=>controller.abort(); }, []);
+  const [tasks, setTasks] = useState<Task[]>([]), [events, setEvents] = useState<CalendarEvent[]>([]), [finance, setFinance] = useState<FinanceTransaction[]>([]), [documents, setDocuments] = useState<DocumentRecord[]>([]), [people, setPeople] = useState<PersonRecord[]>([]), [rates,setRates] = useState<ExchangeRates|null>(null), [reportCurrency,setReportCurrency] = useState<"TRY"|"EUR"|"USD"|"GBP">("TRY"), [journal,setJournal] = useState<JournalEntry[]>([]);
+  useEffect(() => { setTasks(taskRepository.load()); setEvents(calendarRepository.load()); setFinance(financeRepository.load()); setDocuments(documentRepository.load()); setPeople(peopleRepository.load()); setJournal(journalRepository.load()); setReportCurrency(preferencesRepository.load().reportCurrency); const controller=new AbortController(); loadExchangeRates(controller.signal).then(setRates).catch(()=>undefined); return()=>controller.abort(); }, []);
   const date = today(), month = date.slice(0,7);
   const dayEvents = events.filter((event) => event.date === date).sort((a,b) => a.startTime.localeCompare(b.startTime));
   const openTasks = tasks.filter((task) => !task.done).sort((a,b) => (a.dueDate || "9999").localeCompare(b.dueDate || "9999"));
@@ -38,5 +40,6 @@ export function DashboardWorkspace({ onNavigate, onStatus }: { onNavigate: (dest
       <section className="finance-strip"><div className="section-heading"><div><span className="horizon-marker">Later</span><h2>{new Date(date + "T12:00:00").toLocaleDateString(undefined,{month:"long"})} at a glance</h2></div><button className="text-button" onClick={() => onNavigate("Finance")}>Open finance <Arrow/></button></div><div className="finance-values"><div><span>Available balance</span><strong className="balance">{totalMoney(balance)}</strong><small>After cash savings</small></div><div><span>Income</span><strong className="positive">{totalMoney(income)}</strong><small>This month</small></div><div><span>Expenses</span><strong className="negative">{totalMoney(expenses)}</strong><small>{income ? Math.round(expenses/income*100) : 0}% of income</small></div><div><span>Savings</span><strong className="saving">{totalMoney(cashSavings)}</strong><small>Cash savings only</small></div></div></section>
       <section className="family-section"><div className="section-heading"><div><span className="horizon-marker">Shared</span><h2>People and records</h2></div><button className="avatar-stack" onClick={() => onNavigate("People")} aria-label="Open close people">{closePeople.map((person) => <span key={person.id}>{person.name.split(/\s+/).map((part) => part[0]).join("").slice(0,2)}</span>)}{people.length > closePeople.length && <span>+{people.length-closePeople.length}</span>}</button></div>{dueDocuments.slice(0,2).map((document) => <button className="family-note" key={document.id} onClick={() => onNavigate("Documents")}><DocumentIcon/><div><strong>{document.title}</strong><span>{document.category} · {document.dueDate ? new Date(document.dueDate+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"}) : "No due date"}</span></div></button>)}{!dueDocuments.length && <button className="family-note" onClick={() => onNavigate("Documents")}><CalendarIcon/><div><strong>No document deadlines</strong><span>Your active records are clear.</span></div></button>}</section>
     </div>
+    <InsightWidgets tasks={tasks} finance={finance} journal={journal}/>
   </>;
 }
