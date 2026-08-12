@@ -47,6 +47,7 @@ function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
   return <svg aria-hidden="true" viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
 
+const pageDescriptions:Record<string,string>={Dashboard:"Here is what deserves your attention today.",Tasks:"Plan actions, reminders, and smaller steps.",Calendar:"See your time and add meaningful moments.",Finance:"Understand transactions, subscriptions, savings, and receipts.",Documents:"Keep important records and encrypted attachments together.",Journal:"Reflect privately and notice wellbeing patterns.",People:"Remember the people and relationships that matter.",Settings:"Control appearance, reminders, encryption, and your data."};
 const navItems: Array<{ label: string; icon: IconName }> = [
   { label: "Dashboard", icon: "home" },
   { label: "Tasks", icon: "task" },
@@ -157,8 +158,8 @@ export default function Home() {
 
         <div className="page">
           <header className="page-heading">
-            <div><p>Monday, 10 August</p><h1>{active === "Dashboard" ? "Good morning, Yunus." : active}</h1><span>{active === "Dashboard" ? "Here is what deserves your attention today." : "This area will be migrated in a later milestone."}</span></div>
-            <button className="primary-button compact" onClick={() => announce("Quick add will connect to each migrated module.")}><Icon name="plus" /> Quick add</button>
+            <div><p>{new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})}</p><h1>{active === "Dashboard" ? "Good morning, Yunus." : active}</h1><span>{pageDescriptions[active]}</span></div>
+            <button className="primary-button compact" onClick={() => setActive("Tasks")}><Icon name="plus" /> Add task</button>
           </header>
 
           {active === "Settings" ? (
