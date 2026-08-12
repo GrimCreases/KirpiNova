@@ -1,6 +1,6 @@
 # Deploy KirpiNova Web with Contabo and Coolify
 
-This deploys the current KirpiNova web preview as a production-built container. It does not yet enable real accounts, PostgreSQL persistence, or cloud synchronization.
+This deploys KirpiNova as a production-built web application with encrypted cloud accounts, PostgreSQL persistence, private attachment storage, and SMTP account email.
 
 ## 1. Prepare the VPS
 
@@ -34,7 +34,8 @@ Create a private Git repository and push this project. Never commit `.env`, API 
 6. Set the internal port to `3000`.
 7. Set `NEXT_PUBLIC_APP_URL` to the final HTTPS address.
 8. Set the health-check path to `/api/health`.
-9. Deploy.
+9. Add every credential from `.env.example` as a protected Coolify environment variable; keep `RUN_MIGRATIONS_ON_START=true`.
+10. Deploy. The container applies pending migrations under a PostgreSQL advisory lock before the web server starts.
 
 ## 5. Connect the domain
 
@@ -48,7 +49,7 @@ Add the HTTPS domain in Coolify and enable its managed TLS certificate. Do not p
 
 ## 6. Verify
 
-- The preview loads over HTTPS.
+- KirpiNova loads over HTTPS.
 - `/api/health` returns `"status":"ok"`.
 - Light and dark modes work.
 - Every migrated workspace opens.
@@ -64,4 +65,4 @@ Before inviting real users, verify PostgreSQL migrations, S3 CORS and lifecycle 
 
 ## 8. Updates
 
-Push a verified release to the production branch and deploy it through Coolify. Retain the previous successful deployment for rollback. Run database migrations during deployment, verify `/api/ready`, retain the previous successful release for rollback, and test both database and object-storage restoration regularly.
+Push a verified release to the production branch and deploy it through Coolify. Retain the previous successful deployment for rollback. Keep automatic startup migrations enabled, verify `/api/ready` after every deployment, retain the previous successful release for rollback, and test both database and object-storage restoration regularly.

@@ -29,6 +29,6 @@ KirpiNova cannot recover a forgotten vault passphrase. Encrypted `.knv` archives
 ## Current limitations
 
 - PostgreSQL integration requires deployment verification in Coolify.
-- Attachments are not yet included in the cloud vault.
+- Attachment metadata lives inside the encrypted cloud vault; attachment ciphertext is stored separately in the configured private S3-compatible bucket. Encrypted `.knv` archives currently cover workspace data, not the separate attachment blobs.
 - Cross-device conflict UI currently reports that attention is required but does not offer an interactive merge.
 - A formal cryptography review is required before public launch.

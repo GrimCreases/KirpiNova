@@ -18,19 +18,14 @@ Add these application environment variables using the internal hostname shown by
 DATABASE_URL=postgresql://USER:PASSWORD@INTERNAL_POSTGRES_HOST:5432/kirpinova
 DATABASE_POOL_MAX=10
 DATABASE_SSL=false
+RUN_MIGRATIONS_ON_START=true
 ```
 
 Do not paste the real connection string into `.env.example`, Git, screenshots, or support messages.
 
 ## Apply the schema
 
-Open the application terminal in Coolify and run:
-
-```text
-npm run db:migrate
-```
-
-The migration runner uses a PostgreSQL advisory lock, records every applied file, and runs each new migration in a transaction.
+The production container runs `node scripts/migrate.mjs` before starting the web server when `RUN_MIGRATIONS_ON_START=true`. The migration runner uses a PostgreSQL advisory lock, records every applied file, and runs each new migration in a transaction.
 
 ## Verify readiness
 

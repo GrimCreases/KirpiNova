@@ -3,7 +3,7 @@ export const runtime = "nodejs";
 
 export async function GET() {
   return Response.json(
-    { status: "ok", service: "kirpinova-web", version: "0.27.0", time: new Date().toISOString() },
+    { status: "ok", service: "kirpinova-web", version: "0.28.0", time: new Date().toISOString() },
     { status: 200, headers: { "Cache-Control": "no-store" } },
   );
 }
