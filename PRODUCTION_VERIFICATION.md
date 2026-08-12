@@ -16,15 +16,16 @@ KirpiNova's code-level release gates are automated by `npm run check`. The remai
 1. Set `NEXT_PUBLIC_PREVIEW_MODE=false` and `AUTH_DEV_RETURN_TOKENS=false`.
 2. Build the Docker image through Coolify and run all three database migrations.
 3. Verify `/api/health` reports the packaged version and `/api/ready` confirms PostgreSQL access.
-4. Register a fresh account, receive its SMTP-delivered verification message, follow the public HTTPS link, and confirm the session cookie is Secure, HttpOnly, and SameSite=Lax. Confirm an SMTP failure does not leave behind an unreachable unverified account.
-5. Create a vault, save representative Task, Finance, Document, Journal, People, Settings, subscription, and insight data, then confirm encrypted sync from a second browser.
-6. Upload, view, replace, and delete an encrypted Document attachment.
-7. Scan at least three receipts sequentially, including one unreadable image; verify editable blank failure drafts, custom categories, click-to-enlarge, encrypted receipt viewing, discard cleanup, and transaction deletion cleanup.
-8. Download an encrypted `.knv` archive, restore it in a clean browser profile, confirm it synchronizes to cloud, then exercise cloud reset only after the archive is proven restorable.
-9. Turn the network off and confirm only the neutral offline page is cached—never account pages or API responses.
-10. Verify CSP, HSTS, frame denial, MIME sniffing prevention, and cross-site mutation rejection at the public domain.
-11. Restore PostgreSQL and object-storage backups into a non-production environment and verify vault and attachment recovery.
-12. Retain the last successful Coolify deployment for rollback.
+4. Register a fresh account, receive its SMTP-delivered verification message, follow the public HTTPS link, and confirm the session cookie is Secure, HttpOnly, and SameSite=Lax. Confirm resend is non-enumerating and rate-limited, and an SMTP failure does not leave behind an unreachable unverified account.
+5. Request a login-password reset, use the single-use link within 30 minutes, confirm existing sessions are revoked, and confirm the separate vault passphrase is unchanged.
+6. Create a vault, save representative Task, Finance, Document, Journal, People, Settings, subscription, and insight data, then confirm encrypted sync from a second browser.
+7. Upload, view, replace, and delete an encrypted Document attachment.
+8. Scan at least three receipts sequentially, including one unreadable image; verify editable blank failure drafts, custom categories, click-to-enlarge, encrypted receipt viewing, discard cleanup, and transaction deletion cleanup.
+9. Download an encrypted `.knv` archive, restore it in a clean browser profile, confirm it synchronizes to cloud, then exercise cloud reset only after the archive is proven restorable.
+10. Turn the network off and confirm only the neutral offline page is cached—never account pages or API responses.
+11. Verify CSP, HSTS, frame denial, MIME sniffing prevention, and cross-site mutation rejection at the public domain.
+12. Restore PostgreSQL and object-storage backups into a non-production environment and verify vault and attachment recovery.
+13. Retain the last successful Coolify deployment for rollback.
 
 ## Current local evidence
 

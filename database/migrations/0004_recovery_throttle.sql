@@ -1,0 +1,2 @@
+ALTER TABLE auth_attempt DROP CONSTRAINT auth_attempt_scope_check;
+ALTER TABLE auth_attempt ADD CONSTRAINT auth_attempt_scope_check CHECK (scope IN ('email', 'address', 'recovery_email', 'recovery_address'));

@@ -3,6 +3,7 @@ import {isTrustedMutation} from "@/lib/server/origin";
 import {withDatabaseTransaction} from "@/lib/server/database-transaction";
 import {emailAddress,jsonError,readJson,validEmail} from "@/lib/server/auth/request";
 import {tokenHash} from "@/lib/server/auth/session";
+import {checkRecoveryThrottle} from "@/lib/server/auth/throttle";
 import {sendVerificationEmail} from "@/lib/server/email";
 
 export const runtime="nodejs";export const dynamic="force-dynamic";
@@ -12,6 +13,7 @@ export async function POST(request:Request){
  try{
   const body=await readJson(request),email=emailAddress(body.email);
   if(!validEmail(email))return jsonError("Enter a valid email address.");
+  if(!await checkRecoveryThrottle(request,email))return Response.json({ok:true,message:GENERIC_MESSAGE},{headers:{"Cache-Control":"no-store"}});
   const verificationToken=randomBytes(32).toString("base64url");
   await withDatabaseTransaction(async client=>{
    const found=await client.query<{id:string}>("select id from app_user where email=$1 and status='active' and email_verified_at is null for update",[email]);
