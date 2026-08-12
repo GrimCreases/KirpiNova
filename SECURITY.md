@@ -11,6 +11,7 @@ Browser storage is an active local cache and is not independently encrypted by K
 - Currency conversion calls only KirpiNova's same-origin `/api/exchange-rates` route. The server route calls the fixed Frankfurter endpoint for ECB-derived EUR, TRY, USD, and GBP data. Users cannot supply its destination URL.
 - Encrypted attachments use short-lived signed URLs for the configured private S3-compatible origin. Configure bucket CORS for the KirpiNova production origin only.
 - Receipt scanning sends only the explicitly selected receipt image, the user's existing Finance category names, and the user-supplied API key to Google Gemini when the user starts a scan. KirpiNova includes no shared API key. The key remains inside the encrypted account workspace and is not written to a separate server-side key store. Saved receipt images use the same browser-side encryption and private attachment storage as Documents.
+- Account verification emails are sent through the deployment owner's SMTP service. They contain the account email address and a single-use verification link; they never contain vault data, the vault passphrase, or workspace content. SMTP credentials remain server-side environment variables and are not included in the browser bundle or repository.
 
 ## Web controls
 

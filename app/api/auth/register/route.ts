@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { withDatabaseTransaction } from "@/lib/server/database-transaction";
 import { hashPassword, validatePassword } from "@/lib/server/auth/password";
 import { emailAddress,jsonError,passwordValue,readJson,validEmail } from "@/lib/server/auth/request";
+import { sendVerificationEmail } from "@/lib/server/email";
 import { tokenHash } from "@/lib/server/auth/session";
 
 export const runtime="nodejs"; export const dynamic="force-dynamic";
@@ -17,6 +18,7 @@ export async function POST(request:Request) {
       await withDatabaseTransaction(async(client)=>{
         const created=await client.query<{id:string}>("insert into app_user(email,password_hash) values($1,$2) returning id",[email,hash]);
         await client.query("insert into auth_token(user_id,purpose,token_hash,expires_at) values($1,'verify_email',$2,now()+interval '24 hours')",[created.rows[0].id,tokenHash(verificationToken)]);
+        if(process.env.AUTH_DEV_RETURN_TOKENS!=="true")await sendVerificationEmail(email,verificationToken);
       });
     } catch(error) {
       if((error as {code?:string}).code==="23505") return jsonError("An account with this email already exists.",409);

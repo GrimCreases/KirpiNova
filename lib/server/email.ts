@@ -1,0 +1,5 @@
+import "server-only";
+import nodemailer from "nodemailer";
+import {verificationMessage,verificationUrl} from "@/lib/email-message";
+const required=(name:string)=>{const value=process.env[name]?.trim();if(!value)throw new Error(`${name} is not configured.`);return value};
+export async function sendVerificationEmail(email:string,token:string){const port=Number(process.env.SMTP_PORT||587);if(!Number.isInteger(port)||port<1||port>65535)throw new Error("SMTP_PORT is invalid.");const transport=nodemailer.createTransport({host:required("SMTP_HOST"),port,secure:process.env.SMTP_SECURE==="true",auth:{user:required("SMTP_USER"),pass:required("SMTP_PASSWORD")},connectionTimeout:10_000,greetingTimeout:10_000,socketTimeout:20_000});await transport.sendMail(verificationMessage(email,verificationUrl(token,required("NEXT_PUBLIC_APP_URL")),required("SMTP_FROM")))}

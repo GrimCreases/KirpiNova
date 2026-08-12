@@ -1,0 +1,3 @@
+export function verificationUrl(token:string,appUrl:string){const url=new URL("/verify",appUrl);url.searchParams.set("token",token);return url.toString()}
+const escapeHtml=(value:string)=>value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+export function verificationMessage(email:string,url:string,from:string){return{from,to:email,subject:"Verify your KirpiNova account",text:`Welcome to KirpiNova. Verify your account within 24 hours:\n\n${url}\n\nIf you did not create this account, ignore this message.`,html:`<h1>Welcome to KirpiNova</h1><p>Verify your account within 24 hours.</p><p><a href="${escapeHtml(url)}">Verify KirpiNova account</a></p><p>If you did not create this account, ignore this message.</p>`}}

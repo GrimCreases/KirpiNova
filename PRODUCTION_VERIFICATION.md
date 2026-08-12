@@ -9,14 +9,14 @@ KirpiNova's code-level release gates are automated by `npm run check`. The remai
 - Private S3-compatible endpoint, region, bucket, access-key ID, and secret
 - Bucket CORS restricted to the production KirpiNova origin
 - A disposable user-owned Gemini API key for receipt smoke testing
-- An email-delivery provider and sender identity for verification-email delivery (provider integration remains the final service milestone)
+- SMTP host, port, encryption mode, credentials, and a verified sender identity for verification-email delivery
 
 ## Go-live verification
 
 1. Set `NEXT_PUBLIC_PREVIEW_MODE=false` and `AUTH_DEV_RETURN_TOKENS=false`.
 2. Build the Docker image through Coolify and run all three database migrations.
 3. Verify `/api/health` reports the packaged version and `/api/ready` confirms PostgreSQL access.
-4. Register and verify a fresh account; confirm the session cookie is Secure, HttpOnly, and SameSite=Lax.
+4. Register a fresh account, receive its SMTP-delivered verification message, follow the public HTTPS link, and confirm the session cookie is Secure, HttpOnly, and SameSite=Lax. Confirm an SMTP failure does not leave behind an unreachable unverified account.
 5. Create a vault, save representative Task, Finance, Document, Journal, People, Settings, subscription, and insight data, then confirm encrypted sync from a second browser.
 6. Upload, view, replace, and delete an encrypted Document attachment.
 7. Scan at least three receipts sequentially, including one unreadable image; verify editable blank failure drafts, custom categories, click-to-enlarge, encrypted receipt viewing, discard cleanup, and transaction deletion cleanup.

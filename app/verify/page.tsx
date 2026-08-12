@@ -1,0 +1,2 @@
+import {VerificationClient} from "@/components/verification-client";
+export default async function VerifyPage({searchParams}:{searchParams:Promise<{token?:string}>}){const params=await searchParams;return <VerificationClient token={typeof params.token==="string"?params.token:""}/>}
