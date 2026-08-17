@@ -83,6 +83,7 @@ export default function Home() {
   const [syncStatus, setSyncStatus] = useState<"synced" | "syncing" | "conflict" | "offline">("synced");
   const [showPassword, setShowPassword] = useState(false);
   const [active, setActive] = useState("Dashboard");
+  const [quickAddRequest, setQuickAddRequest] = useState(0);
   const [tasks, setTasks] = useState(initialTasks);
   const [toast, setToast] = useState("");
 
@@ -159,7 +160,7 @@ export default function Home() {
         <div className="page">
           <header className="page-heading">
             <div><p>{new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"})}</p><h1>{active === "Dashboard" ? "Good morning, Yunus." : active}</h1><span>{pageDescriptions[active]}</span></div>
-            <button className="primary-button compact" onClick={() => setActive("Tasks")}><Icon name="plus" /> Add task</button>
+            <button className="primary-button compact" onClick={() => { setActive("Dashboard"); setQuickAddRequest(value => value + 1); }}><Icon name="plus" /> Add task</button>
           </header>
 
           {active === "Settings" ? (
@@ -184,7 +185,7 @@ export default function Home() {
               <button className="secondary-button" onClick={() => setActive("Dashboard")}>Return to dashboard</button>
             </section>
           ) : (
-            <DashboardWorkspace onNavigate={setActive} onStatus={announce} />
+            <DashboardWorkspace onNavigate={setActive} onStatus={announce} quickAddRequest={quickAddRequest} />
           )}
         </div>
       </main>

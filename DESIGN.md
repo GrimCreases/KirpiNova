@@ -50,6 +50,15 @@ Desktop uses stable left navigation. Mobile uses bottom navigation for high-freq
 - Dialogs are reserved for focused or protected actions.
 - Motion explains continuity and respects reduced-motion preferences.
 
+## Customizable Dashboard
+
+- Dashboard cards are the intentional exception to the open-layout preference because users own and arrange them.
+- Use a 12-column arranged grid on desktop. Organize mode must expose visible add, move, resize, remove, and reset controls; every pointer action needs a keyboard-operable equivalent.
+- Use the native modal dialog pattern for the widget library, including cancel, close, backdrop, and focus behavior.
+- Removing or resetting a widget must preserve its configuration so restoring it does not erase user content such as Quick Notes.
+- Preserve unknown widget and layout fields during normalization and encrypted backup round-trips so newer or imported layouts degrade safely.
+- On mobile, widgets stack into a single readable column. Do not rely on drag-and-drop there; retain explicit ordering controls.
+
 ## Accessibility
 
 Target WCAG 2.2 AA. Support keyboard operation, visible focus, semantic controls, assistive labels, 200% zoom, reduced motion, and theme-safe contrast.

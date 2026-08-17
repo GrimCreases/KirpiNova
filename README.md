@@ -2,7 +2,7 @@
 
 KirpiNova is a private, unified workspace for personal and family organization. This repository contains the web application built with Next.js, TypeScript, PostgreSQL, and client-side encrypted cloud storage.
 
-See [RUN_LOCALLY.md](./RUN_LOCALLY.md) for Windows setup, [COOLIFY_DEPLOYMENT.md](./COOLIFY_DEPLOYMENT.md) for production deployment, [SECURITY.md](./SECURITY.md) for the security model, and [PRODUCTION_VERIFICATION.md](./PRODUCTION_VERIFICATION.md) for the credential-gated go-live checklist.
+See [PARITY_AUDIT.md](./PARITY_AUDIT.md) for the Windows-to-web recovery map, [RUN_LOCALLY.md](./RUN_LOCALLY.md) for Windows setup, [COOLIFY_DEPLOYMENT.md](./COOLIFY_DEPLOYMENT.md) for production deployment, [SECURITY.md](./SECURITY.md) for the security model, and [PRODUCTION_VERIFICATION.md](./PRODUCTION_VERIFICATION.md) for the credential-gated go-live checklist.
 
 ## Current release
 

@@ -24,5 +24,6 @@ export const previewStorageKeys = [
   "kirpinova-preview-tasks-v1", "kirpinova-preview-calendar-v1", "kirpinova-preview-finance-v1",
   "kirpinova-preview-finance-subscriptions-v1",
   "kirpinova-preview-documents-v1", "kirpinova-preview-journal-v1", "kirpinova-preview-people-v1",
+  "kirpinova-dashboard-layout-v1",
   STORAGE_KEY, "kirpinova-theme",
 ];

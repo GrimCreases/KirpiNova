@@ -1,0 +1,30 @@
+import {notifyDataChanged} from "@/lib/data-events";
+
+export const DASHBOARD_LAYOUT_VERSION=1;
+export type DashboardWidgetType="quickAdd"|"todaySchedule"|"todayTasks"|"quickNotes"|"financeOverview"|"documentsDue"|"peopleOverview"|"taskCompletion"|"expenseTrend"|"wellbeing";
+export type DashboardWidget={id:string;type:DashboardWidgetType;cols:number;rows:number;config?:Record<string,unknown>};
+export type DashboardLayout={version:number;widgets:DashboardWidget[];removedWidgets?:DashboardWidget[];unrecognizedWidgets?:unknown[]};
+export const widgetDefinitions:Record<DashboardWidgetType,{title:string;description:string;cols:number;rows:number}>={
+ quickAdd:{title:"Quick add",description:"Create a task now or open another life area.",cols:4,rows:3},
+ todaySchedule:{title:"Today’s schedule",description:"Today’s timed calendar moments.",cols:5,rows:4},
+ todayTasks:{title:"Today’s tasks",description:"Open tasks and subtask progress.",cols:4,rows:4},
+ quickNotes:{title:"Quick notes",description:"Keep a fast note on the dashboard.",cols:3,rows:3},
+ financeOverview:{title:"Finance overview",description:"Income, expenses, savings, and balance.",cols:6,rows:3},
+ documentsDue:{title:"Documents due",description:"Active document deadlines.",cols:3,rows:3},
+ peopleOverview:{title:"People",description:"Favorite people and upcoming birthdays.",cols:3,rows:3},
+ taskCompletion:{title:"Task completion",description:"Six-month completion trend.",cols:4,rows:3},
+ expenseTrend:{title:"Expense trend",description:"Six-month expense trend.",cols:4,rows:3},
+ wellbeing:{title:"Wellbeing",description:"Journal happiness, energy, and stress.",cols:4,rows:3},
+};
+const KEY="kirpinova-dashboard-layout-v1";
+const ids=(type:DashboardWidgetType,index:number)=>`${type}-${index+1}`;
+const clamp=(value:unknown,min:number,max:number,fallback:number)=>Number.isFinite(Number(value))?Math.max(min,Math.min(max,Math.round(Number(value)))):fallback;
+function normalizeWidget(raw:unknown,index:number):DashboardWidget|null{if(!raw||typeof raw!=="object")return null;const item=raw as Partial<DashboardWidget>;if(!item.type||!(item.type in widgetDefinitions))return null;const type=item.type as DashboardWidgetType,definition=widgetDefinitions[type];return{...item,id:typeof item.id==="string"&&item.id?item.id:ids(type,index),type,cols:clamp(item.cols,3,12,definition.cols),rows:clamp(item.rows,2,8,definition.rows),config:item.config&&typeof item.config==="object"?{...item.config}:undefined} as DashboardWidget}
+export const defaultDashboardLayout=():DashboardLayout=>({version:DASHBOARD_LAYOUT_VERSION,widgets:(["quickAdd","todaySchedule","todayTasks","quickNotes","financeOverview","documentsDue","peopleOverview"] as DashboardWidgetType[]).map((type,index)=>({id:ids(type,index),type,cols:widgetDefinitions[type].cols,rows:widgetDefinitions[type].rows}))});
+export function normalizeDashboardLayout(value:unknown):DashboardLayout{const fallback=defaultDashboardLayout();if(!value||typeof value!=="object")return fallback;const source=value as Partial<DashboardLayout>;if(!Array.isArray(source.widgets))return fallback;const unrecognized=[...(Array.isArray(source.unrecognizedWidgets)?source.unrecognizedWidgets:[])],widgets:DashboardWidget[]=[],removedWidgets:DashboardWidget[]=[];source.widgets.forEach((raw,index)=>{const item=normalizeWidget(raw,index);if(item)widgets.push(item);else unrecognized.push(raw)});if(Array.isArray(source.removedWidgets))source.removedWidgets.forEach((raw,index)=>{const item=normalizeWidget(raw,source.widgets!.length+index);if(item)removedWidgets.push(item);else unrecognized.push(raw)});return{...source,version:DASHBOARD_LAYOUT_VERSION,widgets,...(removedWidgets.length?{removedWidgets}:{}),...(unrecognized.length?{unrecognizedWidgets:unrecognized}:{})} as DashboardLayout}
+export function moveWidget(layout:DashboardLayout,id:string,direction:-1|1){const widgets=[...layout.widgets],index=widgets.findIndex(item=>item.id===id),target=index+direction;if(index<0||target<0||target>=widgets.length)return layout;[widgets[index],widgets[target]]=[widgets[target],widgets[index]];return{...layout,widgets}}
+export function resizeWidget(layout:DashboardLayout,id:string,delta:number){return{...layout,widgets:layout.widgets.map(item=>item.id===id?{...item,cols:clamp(item.cols+delta,3,12,item.cols)}:item)}}
+export function addWidget(layout:DashboardLayout,type:DashboardWidgetType){const removed=[...(layout.removedWidgets||[])],restoreIndex=removed.map(item=>item.type).lastIndexOf(type);if(restoreIndex>=0){const[restored]=removed.splice(restoreIndex,1);return{...layout,widgets:[...layout.widgets,restored],removedWidgets:removed}}const definition=widgetDefinitions[type],id=`${type}-${crypto.randomUUID?.()||Date.now()}`;return{...layout,widgets:[...layout.widgets,{id,type,cols:definition.cols,rows:definition.rows}]}}
+export function removeWidget(layout:DashboardLayout,id:string){const removed=layout.widgets.find(item=>item.id===id);if(!removed)return layout;return{...layout,widgets:layout.widgets.filter(item=>item.id!==id),removedWidgets:[...(layout.removedWidgets||[]),removed]}}
+export function resetDashboardLayout(layout:DashboardLayout){const reset=defaultDashboardLayout(),available=[...layout.widgets,...(layout.removedWidgets||[])],used=new Set<string>();const widgets=reset.widgets.map(item=>{const preserved=available.find(candidate=>candidate.type===item.type&&!used.has(candidate.id));if(!preserved)return item;used.add(preserved.id);return{...item,config:preserved.config?{...preserved.config}:undefined}});return{...reset,widgets,removedWidgets:available.filter(item=>!used.has(item.id)),...(layout.unrecognizedWidgets?.length?{unrecognizedWidgets:[...layout.unrecognizedWidgets]}:{})}}
+export const dashboardLayoutRepository={load(){try{return normalizeDashboardLayout(JSON.parse(localStorage.getItem(KEY)||"null"))}catch{return defaultDashboardLayout()}},save(layout:DashboardLayout){localStorage.setItem(KEY,JSON.stringify(normalizeDashboardLayout(layout)));notifyDataChanged()},key:KEY};
